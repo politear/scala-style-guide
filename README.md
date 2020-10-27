@@ -1,5 +1,7 @@
 # Zignal Labs Scala Guide
 
+## DRAFT! THIS IS IN PROGRESS!!
+
 This guide was adapted from the [Databricks Style Guide](https://github.com/databricks/scala-style-guide) and modified to suite Zignal Labs' specific needs. 
 
 Code is __written once__ by its author, but __read and modified multiple times__ by lots of other engineers. As most bugs actually come from future modification of the code, we need to optimize our codebase for long-term, global readability and maintainability. The best way to achieve this is to write simple code.
