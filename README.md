@@ -26,7 +26,6 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
     * [Curly Braces](#curly)
     * [Long Literals](#long_literal)
     * [Documentation Style](#doc)
-    * [Ordering within a Class](#ordering_class)
     * [Imports](#imports)
     * [Pattern Matching](#pattern-matching)
     * [Infix Methods](#infix)
@@ -188,7 +187,7 @@ In general:
   }
   ```
 
-- For method declarations, use 4 space indentation for their parameters and put each in each line when the parameters don't fit in two lines. Return types can be either on the same line as the last parameter, or start a new line with 2 space indent.
+- For method declarations, use 4 space indentation for their parameters and put each in each line when the parameters don't fit in two lines. Return types should be on the same line as the last parameter.
 
   ```scala
   def newAPIHadoopFile[K, V, F <: NewInputFormat[K, V]](
@@ -197,16 +196,6 @@ In general:
       kClass: Class[K],
       vClass: Class[V],
       conf: Configuration = hadoopConfiguration): RDD[(K, V)] = {
-    // method body
-  }
-
-  def newAPIHadoopFile[K, V, F <: NewInputFormat[K, V]](
-      path: String,
-      fClass: Class[F],
-      kClass: Class[K],
-      vClass: Class[V],
-      conf: Configuration = hadoopConfiguration)
-    : RDD[(K, V)] = {
     // method body
   }
   ```
@@ -262,7 +251,7 @@ In general:
     - Exception: A blank line between two consecutive fields (having no other code between them) is optional. Such blank lines are used as needed to create logical groupings of fields.
   - Within method bodies, as needed to create logical groupings of statements.
   - Optionally before the first member or after the last member of the class (neither encouraged nor discouraged).
-- Use one or two blank line(s) to separate class or object definitions.
+- Use one blank line to separate class or object definitions.
 - Excessive number of blank lines is discouraged.
 
 
@@ -346,30 +335,6 @@ Use Scaladoc style.
   * my third line.
   */
 ```
-
-
-### <a name='ordering_class'>Ordering within a Class</a>
-
-If a class is long and has many methods, group them logically into different sections, and use comment headers to organize them.
-```scala
-class DataFrame {
-
-  ///////////////////////////////////////////////////////////////////////////
-  // DataFrame operations
-  ///////////////////////////////////////////////////////////////////////////
-
-  ...
-
-  ///////////////////////////////////////////////////////////////////////////
-  // RDD operations
-  ///////////////////////////////////////////////////////////////////////////
-
-  ...
-}
-```
-
-Of course, the situation in which a class grows this long is strongly discouraged, and is generally reserved only for building certain public APIs.
-
 
 ### <a name='imports'>Imports</a>
 
