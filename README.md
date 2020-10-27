@@ -1,6 +1,6 @@
-# Databricks Scala Guide
+# Zignal Labs Scala Guide
 
-At Databricks, our engineers work on some of the most actively developed Scala codebases in the world, including our own internal repo called "universe" as well as the various open source projects we contribute to, e.g. [Apache Spark](https://spark.apache.org) and [Delta Lake](https://delta.io/). This guide draws from our experience coaching and working with our engineering teams as well as the broader open source community.
+This guide was adapted from the [Databricks Style Guide](https://github.com/databricks/scala-style-guide) and modified to suite Zignal Labs' specific needs. 
 
 Code is __written once__ by its author, but __read and modified multiple times__ by lots of other engineers. As most bugs actually come from future modification of the code, we need to optimize our codebase for long-term, global readability and maintainability. The best way to achieve this is to write simple code.
 
@@ -44,7 +44,6 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
     * [Implicits](#implicits)
     * [Exception Handling (Try vs try)](#exception)
     * [Options](#option)
-    * [Monadic Chaining](#chaining)
     * [Symbol Literals](#symbol)
 
 1. [Concurrency](#concurrency)
@@ -61,22 +60,11 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
     * [Scala Collection Library](#perf-collection)
     * [private[this]](#perf-private)
 
-1. [Java Interoperability](#java)
-    * [Java Features Missing from Scala](#java-missing-features)
-    * [Traits and Abstract Classes](#java-traits)
-    * [Type Aliases](#java-type-alias)
-    * [Default Parameter Values](#java-default-param-values)
-    * [Multiple Parameter Lists](#java-multi-param-list)
-    * [Varargs](#java-varargs)
-    * [Implicits](#java-implicits)
-    * [Companion Objects, Static Methods and Fields](#java-companion-object)
-
 1. [Testing](#testing)
     * [Intercepting Exceptions](#testing-intercepting)
 
 1. [Miscellaneous](#misc)
     * [Prefer nanoTime over currentTimeMillis](#misc_currentTimeMillis_vs_nanoTime)
-    * [Prefer URI over URL](#misc_uri_url)
     * [Prefer existing well-tested methods over reinventing the wheel](#misc_well_tested_method)
 
 
@@ -94,6 +82,7 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
 - 2017-02-23: Added [Testing](#testing) section.
 - 2017-04-18: Added [Prefer existing well-tested methods over reinventing the wheel](#misc_well_tested_method) section.
 - 2019-12-18: Added [Symbol Literals](#symbol) section.
+- 2020-10-27: Made modifications for Zignal Labs
 
 ## <a name='syntactic'>Syntactic Style</a>
 
@@ -154,12 +143,14 @@ We mostly follow Java's and Scala's standard naming conventions.
   val clientPort = 2000
   ```
 
+- The excpetion to this rule is for members of classes that get serialized, e.g. during into json or get sent to Elasticsearch. These names will use snake_case.
+
 - It is OK to use one-character variable names in small, localized scope. For example, "i" is commonly used as the loop index for a small loop body (e.g. 10 lines of code). However, do NOT use "l" (as in Larry) as the identifier, because it is difficult to differentiate "l" from "1", "|", and "I".
 
 ### <a name='linelength'>Line Length</a>
 
-- Limit lines to 100 characters.
-- The only exceptions are import statements and URLs (although even for those, try to keep them under 100 chars).
+- Limit lines to 120 characters.
+- The only exceptions are import statements and URLs (although even for those, try to keep them under 120 chars).
 
 
 ### <a name='rule_of_30'>Rule of 30</a>
@@ -357,18 +348,14 @@ val longValue = 5432l  // Do NOT do this
 
 ### <a name='doc'>Documentation Style</a>
 
-Use Java docs style instead of Scala docs style.
+Use Scaladoc style.
 ```scala
 /** This is a correct one-liner, short description. */
 
 /**
- * This is correct multi-line JavaDoc comment. And
- * this is my second line, and if I keep typing, this would be
- * my third line.
- */
-
-/** In Spark, we don't use the ScalaDoc style so this
-  * is not correct.
+  * This is correct multi-line ScalaDoc comment. And
+  * this is my second line, and if I keep typing, this would be
+  * my third line.
   */
 ```
 
@@ -766,32 +753,6 @@ __Avoid using symbol literals__. Symbol literals (e.g. `'column`) were deprecate
   ```
   This ensures that we do not catch `NonLocalReturnControl` (as explained in [Return Statements](#return-statements)).
 
-- Do NOT use `Try` in APIs, that is, do NOT return Try in any methods. Instead, prefer explicitly throwing exceptions for abnormal execution and Java style try/catch for exception handling.
-
-  Background information: Scala provides monadic error handling (through `Try`, `Success`, and `Failure`) that facilitates chaining of actions. However, we found from our experience that the use of it often leads to more levels of nesting that are harder to read. In addition, it is often unclear what the semantics are for expected errors vs exceptions because those are not encoded in `Try`. As a result, we discourage the use of `Try` for error handling. In particular:
-
-  As a contrived example:
-  ```scala
-  class UserService {
-    /** Look up a user's profile in the user database. */
-    def get(userId: Int): Try[User]
-  }
-  ```
-  is better written as
-  ```scala
-  class UserService {
-    /**
-     * Look up a user's profile in the user database.
-     * @return None if the user is not found.
-     * @throws DatabaseConnectionException when we have trouble connecting to the database/
-     */
-    @throws(DatabaseConnectionException)
-    def get(userId: Int): Option[User]
-  }
-  ```
-  The 2nd one makes it very obvious error cases the caller needs to handle.
-
-
 ### <a name='option'>Options</a>
 
 - Use `Option` when the value can be empty. Compared with `null`, an `Option` explicitly states in the API contract that the value can be `None`.
@@ -805,45 +766,6 @@ __Avoid using symbol literals__. Symbol literals (e.g. `'column`) were deprecate
   ```
 - Do not use None to represent exceptions. Instead, throw exceptions explicitly.
 - Do not call `get` directly on an `Option`, unless you know absolutely for sure the `Option` has some value.
-
-
-### <a name='chaining'>Monadic Chaining</a>
-
-One of Scala's powerful features is monadic chaining. Almost everything (e.g. collections, Option, Future, Try) is a monad and operations on them can be chained together. This is an incredibly powerful concept, but chaining should be used sparingly. In particular:
-
-- Avoid chaining (and/or nesting) more than 3 operations.
-- If it takes more than 5 seconds to figure out what the logic is, try hard to think about how you can express the same functionality without using monadic chaining. As a general rule, watch out for flatMaps and folds.
-- A chain should almost always be broken after a flatMap (because of the type change).
-
-A chain can often be made more understandable by giving the intermediate result a variable name, by explicitly typing the variable, and by breaking it down into more procedural style. As a contrived example:
-```scala
-class Person(val data: Map[String, String])
-val database = Map[String, Person]
-// Sometimes the client can store "null" value in the  store "address"
-
-// A monadic chaining approach
-def getAddress(name: String): Option[String] = {
-  database.get(name).flatMap { elem =>
-    elem.data.get("address")
-      .flatMap(Option.apply)  // handle null value
-  }
-}
-
-// A more readable approach, despite much longer
-def getAddress(name: String): Option[String] = {
-  if (!database.contains(name)) {
-    return None
-  }
-
-  database(name).data.get("address") match {
-    case Some(null) => None  // handle null value
-    case Some(addr) => Option(addr)
-    case None => None
-  }
-}
-
-```
-
 
 ## <a name='concurrency'>Concurrency</a>
 
@@ -1009,160 +931,6 @@ class MyClass {
 }
 ```
 
-
-## <a name='java'>Java Interoperability</a>
-
-This section covers guidelines for building Java compatible APIs. These do not apply if the component you are building does not require interoperability with Java. It is mostly drawn from our experience in developing the Java APIs for Spark.
-
-
-### <a name='java-missing-features'>Java Features Missing from Scala</a>
-
-The following Java features are missing from Scala. If you need the following, define them in Java instead. However, be reminded that ScalaDocs are not generated for files defined in Java.
-
-- Static fields
-- Static inner classes
-- Java enums
-- Annotations
-
-
-### <a name='java-traits'>Traits and Abstract Classes</a>
-
-For interfaces that can be implemented externally, keep in mind the following:
-
-- Traits with default method implementations are not usable in Java. Use abstract classes instead.
-- In general, avoid using traits unless you know for sure the interface will not have any default implementation even in its future evolution.
-```scala
-// The default implementation doesn't work in Java
-trait Listener {
-  def onTermination(): Unit = { ... }
-}
-
-// Works in Java
-abstract class Listener {
-  def onTermination(): Unit = { ... }
-}
-```
-
-
-### <a name='java-type-alias'>Type Aliases</a>
-
-Do NOT use type aliases. They are not visible in bytecode (and Java).
-
-
-### <a name='java-default-param-values'>Default Parameter Values</a>
-
-Do NOT use default parameter values. Overload the method instead.
-```scala
-// Breaks Java interoperability
-def sample(ratio: Double, withReplacement: Boolean = false): RDD[T] = { ... }
-
-// The following two work
-def sample(ratio: Double, withReplacement: Boolean): RDD[T] = { ... }
-def sample(ratio: Double): RDD[T] = sample(ratio, withReplacement = false)
-```
-
-### <a name='java-multi-param-list'>Multiple Parameter Lists</a>
-
-Do NOT use multi-parameter lists.
-
-### <a name='java-varargs'>Varargs</a>
-
-- Apply `@scala.annotation.varargs` annotation for a vararg method to be usable in Java. The Scala compiler creates two methods, one for Scala (bytecode parameter is a Seq) and one for Java (bytecode parameter array).
-  ```scala
-  @scala.annotation.varargs
-  def select(exprs: Expression*): DataFrame = { ... }
-  ```
-
-- Note that abstract vararg methods does NOT work for Java, due to a Scala compiler bug ([SI-1459](https://issues.scala-lang.org/browse/SI-1459), [SI-9013](https://issues.scala-lang.org/browse/SI-9013)).
-
-- Be careful with overloading varargs methods. Overloading a vararg method with another vararg type can break source compatibility.
-  ```scala
-  class Database {
-    @scala.annotation.varargs
-    def remove(elems: String*): Unit = ...
-
-    // Adding this will break source compatibility for no-arg remove() call.
-    @scala.annotation.varargs
-    def remove(elems: People*): Unit = ...
-  }
-
-  // This won't compile anymore because it is ambiguous
-  new Database().remove()
-  ```
-  Instead, define an explicit first parameter followed by vararg:
-  ```scala
-  class Database {
-    @scala.annotation.varargs
-    def remove(elems: String*): Unit = ...
-
-    // The following is OK.
-    @scala.annotation.varargs
-    def remove(elem: People, elems: People*): Unit = ...
-  }
-  ```
-
-
-### <a name='java-implicits'>Implicits</a>
-
-Do NOT use implicits, for a class or method. This includes `ClassTag`, `TypeTag`.
-```scala
-class JavaFriendlyAPI {
-  // This is NOT Java friendly, since the method contains an implicit parameter (ClassTag).
-  def convertTo[T: ClassTag](): T
-}
-```
-
-### <a name='java-companion-object'>Companion Objects, Static Methods and Fields</a>
-
-There are a few things to watch out for when it comes to companion objects and static methods/fields.
-
-- Companion objects are awkward to use in Java (a companion object `Foo` is a static field `MODULE$` of type `Foo$` in class `Foo$`).
-  ```scala
-  object Foo
-
-  // equivalent to the following Java code
-  public class Foo$ {
-    Foo$ MODULE$ = // instantiation of the object
-  }
-  ```
-  If the companion object is important to use, create a Java static field in a separate class.
-
-- Unfortunately, there is no way to define a JVM static field in Scala. Create a Java file to define that.
-- Methods in companion objects are automatically turned into static methods in the companion class, unless there is a method name conflict. The best (and future-proof) way to guarantee the generation of static methods is to add a test file written in Java that calls the static method.
-  ```scala
-  class Foo {
-    def method2(): Unit = { ... }
-  }
-
-  object Foo {
-    def method1(): Unit = { ... }  // a static method Foo.method1 is created in bytecode
-    def method2(): Unit = { ... }  // a static method Foo.method2 is NOT created in bytecode
-  }
-
-  // FooJavaTest.java (in test/scala/com/databricks/...)
-  public class FooJavaTest {
-    public static void compileTest() {
-      Foo.method1();  // This one should compile fine
-      Foo.method2();  // This one should fail because method2 is not generated.
-    }
-  }
-  ```
-
-- A case object (or even just plain companion object) MyClass is actually not of type MyClass.
-  ```scala
-  case object MyClass
-
-  // Test.java
-  if (MyClass$.MODULE instanceof MyClass) {
-    // The above condition is always false
-  }
-  ```
-  To implement the proper type hierarchy, define a companion class, and then extend that in case object:
-  ```scala
-  class MyClass
-  case object MyClass extends MyClass
-  ```
-
 ## <a name='testing'>Testing</a>
 
 ### <a name='testing-intercepting'>Intercepting Exceptions</a>
@@ -1195,13 +963,6 @@ Caveats:
 - Never serialize an absolute `nanoTime()` value or pass it to another system. The absolute value is meaningless and system-specific and resets when the system reboots.
 - The absolute `nanoTime()` value is not guaranteed to be positive (but `t2 - t1` is guaranteed to yield the right result)
 - `nanoTime()` rolls over every 292 years. So if your Spark job is going to take a really long time, you may need something else :)
-
-
-### <a name='misc_uri_url'>Prefer URI over URL</a>
-
-When storing the URL of a service, you should use the `URI` representation.
-
-The [equality check](http://docs.oracle.com/javase/7/docs/api/java/net/URL.html#equals(java.lang.Object)) of `URL` actually performs a (blocking) network call to resolve the IP address. The `URI` class performs field equality and is a superset of `URL` as to what it can represent.
 
 ### <a name='misc_well_tested_method'>Prefer existing well-tested methods over reinventing the wheel</a>
 
