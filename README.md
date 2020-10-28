@@ -86,7 +86,7 @@ We mostly follow Java's and Scala's standard naming conventions.
 
 - Packages should follow Java package naming conventions, i.e. all-lowercase ASCII letters.
   ```scala
-  package com.databricks.resourcemanager
+  package com.zignallabs.resourcemanager
   ```
 
 - Methods/functions should be named in camelCase style.
@@ -96,6 +96,15 @@ We mostly follow Java's and Scala's standard naming conventions.
   object Configuration {
     val DEFAULT_PORT = 10000
   }
+  ```
+
+- Methods/functions should always have return types.
+  ```scala
+  // Correct
+  def getItems(): List[Int] = {}
+  
+  // Wrong
+  def getItems() = {}
   ```
 
 - An enumeration class or object which extends the `Enumeration` class shall follow the convention for classes and objects, i.e. its name should be in PascalCase style. Enumeration values shall be in the upper case with words separated by the underscore character `_`. For example:
