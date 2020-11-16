@@ -139,7 +139,7 @@ We mostly follow Java's and Scala's standard naming conventions.
   val clientPort = 2000
   ```
 
-- The excpetion to this rule is for members of classes that get serialized, e.g. during into json or get sent to Elasticsearch. These names will use snake_case.
+- *The excpetion to this rule is for members of classes that get serialized, e.g. into json or get sent to Elasticsearch. These names will use snake_case.*
 
 - It is OK to use one-character variable names in small, localized scope. For example, "i" is commonly used as the loop index for a small loop body (e.g. 10 lines of code). However, do NOT use "l" (as in Larry) as the identifier, because it is difficult to differentiate "l" from "1", "|", and "I".
 
@@ -157,7 +157,6 @@ In general:
 
 - A method should contain less than 30 lines of code.
 - A class should contain less than 30 methods.
-
 
 ### <a name='indent'>Spacing and Indentation</a>
 
@@ -252,7 +251,6 @@ In general:
   val multiply = "*"
   ```
 
-
 ### <a name='blanklines'>Blank Lines (Vertical Whitespace)</a>
 
 - A single blank line appears:
@@ -262,7 +260,6 @@ In general:
   - Optionally before the first member or after the last member of the class (neither encouraged nor discouraged).
 - Use one blank line to separate class or object definitions.
 - Excessive number of blank lines is discouraged.
-
 
 ### <a name='parentheses'>Parentheses</a>
 
@@ -290,7 +287,6 @@ In general:
   new Bar().foo  // This returns a Foo
   new Bar().foo()  // This returns an Int!
   ```
-
 
 ### <a name='curly'>Curly Braces</a>
 
@@ -368,7 +364,6 @@ Use Scaladoc style.
   com.databricks  // or org.apache.spark if you are working on Spark
   ```
 
-
 ### <a name='pattern-matching'>Pattern Matching</a>
 
 - For method whose entire body is a pattern match expression, put the match on the same line as the method declaration if possible to reduce one level of indentation.
@@ -418,7 +413,6 @@ Use Scaladoc style.
   }
   ```
 
-
 ### <a name='infix'>Infix Methods</a>
 
 __Avoid infix notation__ for methods that aren't symbolic methods (i.e. operator overloading).
@@ -434,7 +428,6 @@ string contains "foo"
 // But overloaded operators should be invoked in infix style
 arrayBuffer += elem
 ```
-
 
 ### <a name='anonymous'>Anonymous Methods</a>
 
@@ -461,7 +454,6 @@ list.map { item => {
 // Wrong
 list.map({ item => ... })
 ```
-
 
 ## <a name='lang'>Scala Language Features</a>
 
@@ -503,7 +495,6 @@ object TreeNode {
 }
 ```
 
-
 ### <a name='override_modifier'>override Modifier</a>
 Always add override modifier for methods, both for overriding concrete methods and implementing abstract methods. The Scala compiler does not require `override` for implementing abstract methods. However, we should always add `override` to make the override obvious, and to avoid accidental non-overrides due to non-matching signatures.
 ```scala
@@ -525,8 +516,6 @@ class Child extends Parent {
 }
 ```
 
-
-
 ### <a name='destruct_bind'>Destructuring Binds</a>
 
 Destructuring bind (sometimes called tuple extraction) is a convenient way to assign two variables in one expression.
@@ -542,7 +531,6 @@ class MyClass {
   @transient private val (a, b) = someFuncThatReturnsTuple2()
 }
 ```
-
 
 ### <a name='call_by_name'>Call by Name</a>
 
@@ -591,7 +579,6 @@ channel.send(msg)
 stream1.join(stream2)
 ```
 
-
 ### <a name='type_inference'>Type Inference</a>
 
 Scala type inference, especially left-side type inference and closure inference, can make code more concise. That said, there are a few cases where explicit typing should be used:
@@ -599,7 +586,6 @@ Scala type inference, especially left-side type inference and closure inference,
 - __Public methods should be explicitly typed__, otherwise the compiler's inferred type can often surprise you.
 - __Implicit methods should be explicitly typed__, otherwise it can crash the Scala compiler with incremental compilation.
 - __Variables or closures with non-obvious types should be explicitly typed__. A good litmus test is that explicit types should be used if a code reviewer cannot determine the type in 3 seconds.
-
 
 ### <a name='return'>Return Statements</a>
 
@@ -669,7 +655,6 @@ def max(data: Array[Int]): Int = {
   max
 }
 ```
-
 
 ### <a name='implicits'>Implicits</a>
 
