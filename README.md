@@ -68,6 +68,7 @@ Scala is an incredibly powerful language that is capable of many paradigms. We h
 - 2017-04-18: Added [Prefer existing well-tested methods over reinventing the wheel](#misc_well_tested_method) section.
 - 2019-12-18: Added [Symbol Literals](#symbol) section.
 - 2020-10-27: Made modifications for Zignal Labs
+- 2026-03-12: Revise indentation and formatting guidelines
 
 ## <a name='syntactic'>Syntactic Style</a>
 
@@ -103,24 +104,6 @@ We mostly follow Java's and Scala's standard naming conventions.
   
   // Wrong
   def getItems() = {}
-  ```
-
-- An enumeration class or object which extends the `Enumeration` class shall follow the convention for classes and objects, i.e. its name should be in PascalCase style. Enumeration values shall be in the upper case with words separated by the underscore character `_`. For example:
-  ```scala
-    private object ParseState extends Enumeration {
-    type ParseState = Value
-
-    val PREFIX,
-        TRIM_BEFORE_SIGN,
-        SIGN,
-        TRIM_BEFORE_VALUE,
-        VALUE,
-        VALUE_FRACTIONAL_PART,
-        TRIM_BEFORE_UNIT,
-        UNIT_BEGIN,
-        UNIT_SUFFIX,
-        UNIT_END = Value
-  }
   ```
 
 - Annotations should also follow Java convention, i.e. PascalCase. Note that this differs from Scala's official guide.
@@ -193,28 +176,28 @@ In general:
   }
   ```
 
-- For method declarations, use 4 space indentation for their parameters and put each in each line when the parameters don't fit in two lines. Return types should be on the same line as the last parameter.
+- For method declarations, use 2 space indentation past the '(' for their parameters and put each in each line when the parameters don't fit in two lines. Return types should be on the same line as the last parameter.
 
   ```scala
   def newAPIHadoopFile[K, V, F <: NewInputFormat[K, V]](
-      path: String,
-      fClass: Class[F],
-      kClass: Class[K],
-      vClass: Class[V],
-      conf: Configuration = hadoopConfiguration): RDD[(K, V)] = {
+                                                         path: String,
+                                                         fClass: Class[F],
+                                                         kClass: Class[K],
+                                                         vClass: Class[V],
+                                                         conf: Configuration = hadoopConfiguration,
+                                                       ): RDD[(K, V)] = {
     // method body
   }
   ```
 
-- For classes whose header doesn't fit in two lines, use 4 space indentation for its parameters, put each in each line, put the extends on the next line with 2 space indent, and add a blank line after class header.
+- For classes whose header doesn't fit in two lines, use 2 space indentation for its parameters, put each in each line, put the extends on the next line with 2 space indent, and add a blank line after class header.
 
   ```scala
   class Foo(
-      val param1: String,  // 4 space indent for parameters
-      val param2: String,
-      val param3: Array[Byte])
-    extends FooInterface  // 2 space indent here
-    with Logging {
+             val param1: String,  // 2 space indent past ( for parameters
+             val param2: String,
+             val param3: Array[Byte]
+           ) extends FooInterface with Logging {
 
     def firstMethod(): Unit = { ... }  // blank line above
   }
@@ -227,13 +210,15 @@ In general:
     someVeryLongFieldName,  // 2 space indent here
     andAnotherVeryLongFieldName,
     "this is a string",
-    3.1415)
+    3.1415,
+  )
 
   new Bar(
     someVeryLongFieldName,  // 2 space indent here
     andAnotherVeryLongFieldName,
     "this is a string",
-    3.1415)
+    3.1415
+  )
   ```
 
 - Do NOT use vertical alignment. They draw attention to the wrong parts of the code and make the aligned code harder to change in the future.
